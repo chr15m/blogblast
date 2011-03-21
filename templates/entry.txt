@@ -1,0 +1,8 @@
+$subject
+
+#for $b in $binaries
+	#set global $img = $b
+	#include $TEMPLATE_DIR + "/" + $b[0] + ".txt"
+#end for
+
+$message
