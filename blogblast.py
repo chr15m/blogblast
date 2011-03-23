@@ -8,6 +8,7 @@ ATTACHMENTS_URL = "/attachments"
 ALLOWED_FROM_EMAILS = ["john@smith.com"]
 IMAGE_ARTIST_COPYRIGHT = "John Smith"
 THUMBSIZE = (400, 800)
+LOGFILE = "blogblast.log"
 
 ### config over ###
 
@@ -23,6 +24,9 @@ from Cheetah.Template import Template
 import Image
 import pyexiv2
 
+# set the umask so our files have the right permissions
+os.umask(022)
+
 # change to the directory where this script lives
 if os.path.isdir(sys.path[0]):
 	os.chdir(sys.path[0])
@@ -32,6 +36,10 @@ else:
 # read local_config.py for config updates
 if os.path.isfile("settings_local.py"):
 	from settings_local import *
+
+# open a logfile
+log = file(LOGFILE, "w")
+sys.stderr = log
 
 # code to generate a slug from the subject heading
 # http://snipplr.com/view/26266/create-slugs-in-python/
@@ -150,17 +158,14 @@ if correct_from_address:
 					mirror = im.copy()
 				
 				mirror.save(outfilename + extension)
-				img_grand = pyexiv2.Image(outfilename + extension)
-				img_grand.readMetadata()
-				image.copyMetadataTo(img_grand)
-				img_grand.writeMetadata()
+				if extension.lower() in [".jpg", ".jpeg"]:
+					img_grand = pyexiv2.Image(outfilename + extension)
+					img_grand.readMetadata()
+					image.copyMetadataTo(img_grand)
+					img_grand.writeMetadata()
 				
 				mirror.thumbnail(THUMBSIZE, Image.ANTIALIAS)
 				mirror.save(outfilename + "-thumb.png", "PNG")
-				img_mini = pyexiv2.Image(outfilename + "-thumb.png")
-				img_mini.readMetadata()
-				image.copyMetadataTo(img_mini)
-				img_mini.writeMetadata()
 			
 			# store this in our list of binaries
 			binaries.append((ctype, uid, extension, filename))
@@ -176,6 +181,21 @@ if correct_from_address:
 # add to the tags line from the message
 message = "\n".join([x.startswith("#tags") and x + "," + ",".join(tags) or x for x in message.split("\n")])
 
+newmessage = ""
+tagline = ""
+for l in message.split("\n"):
+	if l.startswith("#tags "):
+		tagline = l
+	else:
+		newmessage += l + "\n"
+
+if tagline:
+	newmessage += tagline + "," + ",".join(tags)
+else:
+	newmessage += "#tags " + ",".join(tags)
+
+message = newmessage
+
 # write the actual template result
 entry = file(entryfile, "w")
 t = Template(file=os.path.join(TEMPLATE_DIR, "entry.txt"), searchList=[{
@@ -186,5 +206,9 @@ t = Template(file=os.path.join(TEMPLATE_DIR, "entry.txt"), searchList=[{
 	}])
 entry.write(str(t))
 entry.close()
+
+# done with the logfile
+log.close()
+
 #print t
 #print entryfile, subject, message, binaries
