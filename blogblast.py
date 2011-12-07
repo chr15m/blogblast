@@ -18,6 +18,7 @@ import htmlentitydefs
 import sys
 import os
 import re
+from datetime import datetime
 
 from Cheetah.Template import Template
 
@@ -38,8 +39,15 @@ if os.path.isfile("settings_local.py"):
 	from settings_local import *
 
 # open a logfile
-log = file(LOGFILE, "w")
+log = file(LOGFILE, "w+")
 sys.stderr = log
+
+def logit(msg):
+	log.write(msg + "\n")
+
+# log the starting time
+
+logit("%s - Starting" % datetime.now().strftime("%Y-%m-%d %H:%M"))
 
 # code to generate a slug from the subject heading
 # http://snipplr.com/view/26266/create-slugs-in-python/
@@ -109,6 +117,7 @@ if correct_from_address:
 			outfile.write(part.get_payload(decode=1))
 			outfile.close()
 			
+			logit("Attachment %d: %s" % (partcounter, filename))
 			# if it's an image, rotate it to the correct orientation
 			# and make a thumbnail
 			# http://stackoverflow.com/questions/1606587/how-to-use-pil-to-resize-and-apply-rotation-exif-information-to-the-file
@@ -161,7 +170,10 @@ if correct_from_address:
 				if extension.lower() in [".jpg", ".jpeg"]:
 					img_grand = pyexiv2.Image(outfilename + extension)
 					img_grand.readMetadata()
-					image.copyMetadataTo(img_grand)
+					try:
+						image.copyMetadataTo(img_grand)
+					except TypeError:
+						logit("Oops, metadata error!")
 					img_grand.writeMetadata()
 				
 				mirror.thumbnail(THUMBSIZE, Image.ANTIALIAS)
@@ -177,6 +189,8 @@ if correct_from_address:
 		# the text message is almost always the first part and is text
 		elif partcounter == 1 and part.get_content_maintype() == "text":
 			message = part.get_payload(decode=1)
+
+logit("Done with attachments")
 
 # add to the tags line from the message
 message = "\n".join([x.startswith("#tags") and x + "," + ",".join(tags) or x for x in message.split("\n")])
@@ -196,6 +210,8 @@ else:
 
 message = newmessage
 
+logit("Done with tags")
+
 # write the actual template result
 entry = file(entryfile, "w")
 t = Template(file=os.path.join(TEMPLATE_DIR, "entry.txt"), searchList=[{
@@ -212,3 +228,10 @@ log.close()
 
 #print t
 #print entryfile, subject, message, binaries
+
+logit(str(entryfile))
+logit(str(subject))
+logit(str(message))
+logit(str(binaries))
+logit("Done")
+logit("---")
