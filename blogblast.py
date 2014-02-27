@@ -122,10 +122,10 @@ if correct_from_address:
 			# and make a thumbnail
 			# http://stackoverflow.com/questions/1606587/how-to-use-pil-to-resize-and-apply-rotation-exif-information-to-the-file
 			if ctype == "image":
-				image = pyexiv2.Image(outfilename + extension)
-				image.readMetadata()
+				image = pyexiv2.ImageMetadata(outfilename + extension)
+				image.read()
 				# We clean the file and add some information
-				image.deleteThumbnail()
+				image.exif_thumbnail.erase()
 				image['Exif.Image.Artist'] = IMAGE_ARTIST_COPYRIGHT
 				image['Exif.Image.Copyright'] = IMAGE_ARTIST_COPYRIGHT
 				
@@ -133,8 +133,8 @@ if correct_from_address:
 				#im.thumbnail(THUMBSIZE, Image.ANTIALIAS)
 				
 				# We rotate regarding to the EXIF orientation information
-				if 'Exif.Image.Orientation' in image.exifKeys():
-					orientation = image['Exif.Image.Orientation']
+				if 'Exif.Image.Orientation' in image.exif_keys:
+					orientation = image['Exif.Image.Orientation'].value
 					if orientation == 1:
 						# Nothing
 						mirror = im.copy()
@@ -161,20 +161,22 @@ if correct_from_address:
 						mirror = im.transpose(Image.ROTATE_90)
 					
 					# No more Orientation information
-					image['Exif.Image.Orientation'] = 1
+					image['Exif.Image.Orientation'] = pyexiv2.XmpTag('Exif.Image.Orientation', 1)
 				else:
 					# No EXIF information, the user has to do it
 					mirror = im.copy()
 				
 				mirror.save(outfilename + extension)
 				if extension.lower() in [".jpg", ".jpeg"]:
-					img_grand = pyexiv2.Image(outfilename + extension)
-					img_grand.readMetadata()
+					img_grand = pyexiv2.ImageMetadata(outfilename + extension)
+					img_grand.read()
 					try:
-						image.copyMetadataTo(img_grand)
+						# copy the metadata
+						for k in image.exif_keys:
+							img_grand[k] = image[k]
 					except TypeError:
 						logit("Oops, metadata error!")
-					img_grand.writeMetadata()
+					img_grand.write()
 				
 				mirror.thumbnail(THUMBSIZE, Image.ANTIALIAS)
 				mirror.save(outfilename + "-thumb.png", "PNG")
