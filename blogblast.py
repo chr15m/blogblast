@@ -170,12 +170,13 @@ if correct_from_address:
 				if extension.lower() in [".jpg", ".jpeg"]:
 					img_grand = pyexiv2.ImageMetadata(outfilename + extension)
 					img_grand.read()
-					try:
+					#try:
 						# copy the metadata
-						for k in image.exif_keys:
-							img_grand[k] = image[k]
-					except TypeError:
-						logit("Oops, metadata error!")
+					#	for k in image.exif_keys:
+					#		img_grand[k] = image[k]
+					#except TypeError:
+					#	logit("Oops, metadata error!")
+					image.copy(img_grad)
 					img_grand.write()
 				
 				mirror.thumbnail(THUMBSIZE, Image.ANTIALIAS)
