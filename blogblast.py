@@ -158,7 +158,10 @@ if correct_from_address:
 						mirror = im.transpose(Image.ROTATE_90)
 					
 					# No more Orientation information
-					image['Exif.Image.Orientation'] = pyexiv2.XmpTag('Exif.Image.Orientation', 1)
+					try:
+						image['Exif.Image.Orientation'] = pyexiv2.XmpTag('Exif.Image.Orientation', 1)
+					except KeyError:
+						pass
 				else:
 					# No EXIF information, the user has to do it
 					mirror = im.copy()
