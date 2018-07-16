@@ -8,6 +8,7 @@ ATTACHMENTS_URL = "/attachments"
 ALLOWED_FROM_EMAILS = ["john@smith.com"]
 IMAGE_ARTIST_COPYRIGHT = "John Smith"
 THUMBSIZE = (400, 800)
+MAKETHUMB = True
 LOGFILE = "blogblast.log"
 
 ### config over ###
@@ -118,7 +119,7 @@ if correct_from_address:
 			# if it's an image, rotate it to the correct orientation
 			# and make a thumbnail
 			# http://stackoverflow.com/questions/1606587/how-to-use-pil-to-resize-and-apply-rotation-exif-information-to-the-file
-			if ctype == "image":
+			if ctype == "image" and extension.lower() in [".jpg", ".jpeg", ".png", ".bmp"] and MAKETHUMB:
 				image = pyexiv2.ImageMetadata(outfilename + extension)
 				image.read()
 				# We clean the file and add some information
@@ -225,6 +226,7 @@ t = Template(file=os.path.join(TEMPLATE_DIR, "entry.txt"), searchList=[{
 	"message": message,
 	"binaries": binaries,
 	"TEMPLATE_DIR": TEMPLATE_DIR,
+        "MAKETHUMB": MAKETHUMB,
 	}])
 entry.write(str(t))
 entry.close()
