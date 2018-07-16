@@ -192,6 +192,9 @@ if correct_from_address:
 		# the text message is almost always the first part and is text
 		elif partcounter == 1 and part.get_content_maintype() == "text":
 			message = part.get_payload(decode=1)
+else:
+	logit("Bad from address:" + msg['From'])
+	sys.exit("From address " + msg['From'] + " is not allowed")
 
 logit("Done with attachments")
 
