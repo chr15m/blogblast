@@ -1,0 +1,3 @@
+<a href="/gfx/blogref/upload/$img[1]$img[2]" rel="lighterbox" alt="$img[3]">
+    <img src="/gfx/blogref/upload/$img[1]-thumb.png" border="0" title="$img[3]" alt="$img[3]" />
+</a>

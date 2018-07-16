@@ -2,7 +2,11 @@ $subject
 
 #for $b in $binaries
 	#set global $img = $b
-	#include $TEMPLATE_DIR + "/" + $b[0] + ".txt"
+	#if $MAKETHUMB
+		#include $TEMPLATE_DIR + "/thumbnail-" + $b[0] + ".txt"
+	#else
+		#include $TEMPLATE_DIR + "/" + $b[0] + ".txt"
+	#end if
 #end for
 
 $message
