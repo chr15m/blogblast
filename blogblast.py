@@ -105,16 +105,16 @@ if correct_from_address:
 			# what kind of content is this?
 			ctype = part.get_content_maintype()
 			# get the file extension
-			extension = os.path.splitext(filename)[1]
+			extension = os.path.splitext(filename)[1] or "." + part.get_content_subtype()
 			# generate a new output filename
-			uid = str(uuid4())
-			outfilename = os.path.join(ATTACHMENTS_DIR, uid)
+			uid = str(uuid4())[:8]
+			outfilename = os.path.join(ATTACHMENTS_DIR, uid + "-" + filename.replace(extension, ""))
 			# write this file out
 			outfile = open(outfilename + extension, "wb")
 			outfile.write(part.get_payload(decode=1))
 			outfile.close()
 			
-			logit("Attachment %d: %s" % (partcounter, filename))
+			logit("Attachment %d: %s %s" % (partcounter, filename, (outfilename + extension)))
 			# if it's an image, rotate it to the correct orientation
 			# and make a thumbnail
 			# http://stackoverflow.com/questions/1606587/how-to-use-pil-to-resize-and-apply-rotation-exif-information-to-the-file
