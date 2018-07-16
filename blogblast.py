@@ -29,10 +29,7 @@ import pyexiv2
 os.umask(022)
 
 # change to the directory where this script lives
-if os.path.isdir(sys.path[0]):
-	os.chdir(sys.path[0])
-else:
-	os.chdir(os.path.dirname(sys.path[0]))
+os.chdir(os.path.realpath(os.path.dirname(__file__)))
 
 # read local_config.py for config updates
 if os.path.isfile("settings_local.py"):
